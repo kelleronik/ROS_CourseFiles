@@ -1,0 +1,308 @@
+Тема "Nodes + Topics"
+
+
+roscore					//для подключения ROS и начала работы, симулирование
+
+rosrun turtlesim turtlesim_node		//для запуска ноды "turtlesim_node"-nodetype (черепашка) из пакета turtlesim
+
+rosrun turtlesim turtle_teleop_key	//для запуска ноды "turtle_teleop_key" (управление черепашкой со стрелочек)
+
+rosnode list				//активные в данный момент ноды
+
+rosrun turtlesim turtlesim_node __name:=turtlesim_node_second //создание ноды типа "turtlesim_node" с пользовательским именем "turtlesim_node_second"
+
+//Топики имеют name (имя топика) и type (тип хранимых сообщений), топики связаны "от многих к многим"
+
+rosnode info /turtlesim			//для получения информации о ноде с именем-типом "turtlesim"
+
+rosnode info /teleop_turtle		//для получения информации о ноде с именем-типом "teleop_turtle"
+
+rostopic info /turtle1/cmd_vel		//для получения информации о топике с именем "turtle1/cmd_vel"
+
+rosmsg show geometry_msgs/Twist		//для получения информации о типе сообщений "geometry_msgs/Twist" топика
+
+rostopic pub /turtle1/cmd_vel geometry_msgs/Twist	//для публикации(отправки) сообщения с типом "geometry_msgs/Twist" в топик "turtle1/cmd_vel" из терминала, МОЖНО ПОЛЬЗОВАТЬСЯ TAB'ОМ
+
+rostopic echo /turtle1/cmd_vel		//для отслеживания сообщений, переходящих в топик "/turtle1/cmd_vel"
+
+rosrun rqt_graph rqt_graph		//для построение графа, отражающего связь запущенных нод и топиков
+
+rosservice list				//для просмотра доступных сервисов
+
+rosservice info	/clear			//информация о сервисе "clear"
+
+rosservice info /turtle1/teleport_absolute	//информация о сервисе "turtle1/teleport_absolute"
+
+rosservice call /clear			//вызов сервиса "clear"
+
+rosservice call /turtle1/teleport_absolute	//вызов сервиса "turtle1/teleport_absolute"
+
+rossrv show std_srvs/Empty		//для получения информации о типе "std_srvs/Empty" севиса
+
+rossrv show turtlesim/TeleportAbsolute	//для получения информации о типе "turtlesim/TeleportAbsolute" севиса
+
+
+
+
+Тема "Понятие пакета, иерархия папок в файловой системе, компиляция"
+
+
+mkdir -p workspace/src			//создать папку в папке и т.д.
+
+cd workspace/src			//перейти по указанному пути
+
+catkin_init_workspace			//инициализация созданной среды, выполняется при переходе по пути src
+
+catkin_create_pkg hello_world		//создание пакета "hello_world", выполняется при переходе по пути src. После имени пакета через пробел можно указывать зависимости, например "roscpp" - при использовании C++
+
+ll					//вывод истории о действиях пользователя в текущем каталоге
+ls					//список файлов и папок в директории
+
+kate CMakeLists.txt			//открытие файла с именем "CMakeLists.txt" в текстовом редакторе. Необходимо находиться в папке с файлом
+
+catkin_make				//сборка проекта, выполняется в корневой директории проекта
+
+
+
+
+Тема "Понятие пакета, иерархия папок в файловой системе, компиляция"
+
+
+//В src необходимо создать пакет "talkers"
+catkin_create_pkg talkers roscpp
+cd talkers
+
+gedit CMakeLists.txt
+//В этом документе необходимо изменить стандартные обозначения на "publisher" (имя пакета, которое будет использоваться) в:
+
+## Declare a C++ executable
+## With catkin_make all packages are built within a single CMake context
+## The recommended prefix ensures that target names across packages don't collide
+ add_executable(publisher src/publisher.cpp)
+
+## Specify libraries to link a library or executable target against
+ target_link_libraries(publisher
+   ${catkin_LIBRARIES}
+ )
+
+
+
+
+Тема "Создание простых нод писателя и читателя"
+
+
+//Необходимо редактировать CMakeList.txt при добавлении в пакет ноды
+//Необходимо правильно создавать ноды - этому еще учиться да учитсья
+//Компилировать проект после добавления или изменения ноды
+//Перед запуском написанной ноды в воркспейсе прописать "source devel/setup.bash"
+
+
+
+
+Тема "Обмен сообщениями собственного типа"
+
+
+rosmsg list				//список стандартных доступных типов сообщений
+
+rosmsg show visualization_msgs/MenuEntry //для получения информации о типе сообщений "visualization_msgs/MenuEntry" топика
+
+
+//К заданию
+shape_msgs/MeshTriangle
+uint32[3] vertex_indices
+
+
+//При создании собственного пакета сообщений в CMakeLists.txt необходимо:
+
+//1) Указать компоненты для сборки catkin 
+find_package(catkin REQUIRED COMPONENTS
+  std_msgs
+  message_generation)
+//Раскомментить "find_package(Boost REQUIRED COMPONENTS system)"
+
+//2)Раскомментировать строки с добавлением файлов сообщений, стандартные имена Message1 лучше менять
+## Generate messages in the 'msg' folder
+ add_message_files(
+   FILES
+   Message1.msg
+#   Message2.msg
+ )
+
+//3) Расскомментировать зависимость generate_messages от std_msgs
+## Generate added messages and services with any dependencies listed here
+ generate_messages(
+   DEPENDENCIES
+   std_msgs  # Or other packages containing msgs
+ )
+
+//4) Раскомментировать и изменить #CATKIN_DEPENDS other_catkin_pkg на
+CATKIN_DEPENDS message_runtime
+
+
+//Также изменить package.xml
+
+//1) Указать дополнительные build_depend и run_depend
+  <build_depend>message_generation</build_depend> //build_depend
+  <exec_depend>message_runtime</exec_depend>	  //переименованный run_depend
+
+
+//Необходимо создать папку с собственными сообщениями (в папке my_message) и перейти в нее
+mkdir msg
+cd msg
+//И создать файл сообщения
+gedit Message1.msg				  //имя, ранее указанное в CMakeLists.txt
+
+
+//В файле указать 2 поля:
+string text					  //строковое поле с именем text
+int32 number					  //целочисленное поле с типом int32 и именем number
+
+
+//Скомпилировать все
+catkin_make
+source devel/setup.bash
+rosmsg show my_message/Message1 		  //вызвать команду для проверки
+
+//По пути workspace/devel/include/my_message создался файл Message1.h
+
+
+//Создать пакет с нодами с зависимостями roscpp и my_message (в папке src)
+catkin_create_pkg agents roscpp my_message
+
+//Отредактировать файл CMakeLists.txt по принципам из темы "Понятие пакета, иерархия папок в файловой системе, компиляция", только вместо publisher и subscriber будут reader и writer
+
+//Также отредактировать package.xml
+
+//Создать файлы writer.cpp и reader.cpp
+
+
+
+
+Тема "Понятие и создание собственного сервиса"
+
+
+touch AddInts.srv				    //создать файл "AddInts.srv" в текущем каталоге
+
+
+rossrv						    //работает с  типами, например "rossrv list" может показать все существующие сервисы ROS
+rosservice					    //работает с самими сервисами, "rossrv list" может показать только сервисы, запущенные и доступные в данный момент
+
+
+catkin_create_pkg my_service message_generation message_runtime //создание пакета сервиса
+~/workspace/src/my_service/srv$ touch AddInts.srv		//создание файла сервиса
+//Его содержание
+int32 first
+int32 second
+---
+int32 sum
+
+
+//Изменения в CMakeLists.txt
+find_package(catkin REQUIRED COMPONENTS
+  message_generation
+  message_runtime
+  std_msgs
+)
+
+## Generate services in the 'srv' folder
+ add_service_files(
+   FILES
+   AddInts.srv
+#   Service2.srv
+ )
+
+## Generate added messages and services with any dependencies listed here
+ generate_messages(
+   DEPENDENCIES
+   std_msgs  # Or other packages containing msgs
+ )
+
+
+//Далее выполнить catkin_make
+
+
+catkin_create_pkg client_server roscpp my_service		//создание пекета клиента сервера
+~/workspace/src/client_server/src$ touch subscriber.cpp		//создание  файла клиента сервера
+//Заполнить файл
+
+
+//Отредактировать CMakeLists.txt
+
+## Declare a C++ executable
+## With catkin_make all packages are built within a single CMake context
+## The recommended prefix ensures that target names across packages don't collide
+ add_executable(server src/subscriber.cpp)
+
+## Specify libraries to link a library or executable target against
+ target_link_libraries(server
+   ${catkin_LIBRARIES}
+ )
+
+
+
+
+
+Тема "Визуализация с помощью RViz"
+
+rosrun rviz rviz						  //запуск ноды rviz из пакета rviz
+
+
+
+
+
+Тема "Использование launch-файлов"
+
+roslaunch agents run.launch					  //запуск файла "run.launch" из пакета "agents"
+
+
+
+
+
+
+Тема "Пакет преобразований координат TF"
+
+catkin_create_pkg tf_example roscpp tf geometry msgs		  //создание пакета
+
+//Изменить CMakeList.txt
+
+//Добавить исполняемые файлы
+## Declare a C++ executable
+## With catkin_make all packages are built within a single CMake context
+## The recommended prefix ensures that target names across packages don't collide
+ add_executable(broadcaster src/broadcaster.cpp)
+ add_executable(listener src/listener.cpp)
+
+//Добавить библиотеки
+## Specify libraries to link a library or executable target against
+ target_link_libraries(broadcaster ${catkin_LIBRARIES} )
+ target_link_libraries(listener ${catkin_LIBRARIES} )
+
+
+rosrun rqt_graph rqt_graph																	//вывести граф нод и топиков
+
+rosrun tf view_frames															//вывод в pdf зависимостей между запущенными системами координат посредством прослушки tf
+
+
+
+
+
+source ~/.bashrc
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

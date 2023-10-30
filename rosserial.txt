@@ -1,0 +1,26 @@
+http://wiki.ros.org/rosserial_arduino/Tutorials/Arduino%20IDE%20Setup
+
+sudo ./install.sh
+
+sudo apt-get install ros-noetic-rosserial-arduino
+sudo apt-get install ros-noetic-rosserial
+
+
+
+Идем по пути ~/Arduino/libraries и открываем терминал
+
+rm -rf ros_lib
+rosrun rosserial_arduino make_libraries.py ~/Arduino/libraries
+
+
+
+roscore
+rosrun rosserial_python serial_node.py /dev/ttyACM0 57600		#/dev/ttyUSB0 57600
+rostopic list
+rostopic pub /servo std_msgs/UInt16 "data: 180"
+rostopic pub /servo std_msgs/UInt16 "data: 0"
+rostopic pub /servo std_msgs/UInt16 "data: 90"
+
+sudo apt-get update
+sudo apt-get upgrade
+sudo apt install arduino

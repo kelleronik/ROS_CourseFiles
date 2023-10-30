@@ -1,0 +1,195 @@
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХ
+
+get upgrade		#Для установки пакетов обновлений
+
+#Если обновились
+
+sudo reboot			#Для перезагрузки
+
+#sudo apt-get install realvnc-vnc-server	#Для установки RealVNC
+#vncserver					#Для запуска RealVNC
+
+sudo apt-get install tightvncserver		#Для установки TightVNC
+
+vncserver :1 -geometry 1366x768 -depth 24 #800x400	#Для запуска TightVNC
+
+passpass						#Пароль для подключения по TightVNC
+
+netstat -pan|grep 'vnc'
+ip addr show						#Для просмотра IP-адреса
+#Результат - IP-адрес: 192.168.177.255::5901 #236.255::6001  #236.177
+192.168.1.67
+
+
+ssh pi@192.168.236.177					#Для подключения к RaspberryPi по SSH
+rosrun rosserial_python serial_node.py /dev/ttyACM0 56000	#Для запуска на RaspberryPi ноды rosserial, соединяющей с платой Ардуино
+roslaunch usb_cam usb_cam-test.launch				#Для запуска на RaspberryPi нода, считывающей изображение с USB-камеры
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХ
+
+sudo dphys-swapfile swapoff			#Для отключения файла подкачки
+sudo nano /etc/dphys-swapfile			#Для поткрытия файла, в котором задан размер файла подкачки
+sudo dphys-swapfile setup			#Для установки нового размера файла подкачки
+sudo dphys-swapfile swapon			#Для подключения файла подкачки
+free -h					#Для просмотра объемов свободной и занятой памяти
+
+
+#ls
+#cd /etc/apt
+#sudo  mv sources.list.d sources.d
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХ
+#Установка ROS Noetic на RaspberryPi 3B+:
+sudo sh -c 'echo "deb http://packages.ros.org/ros/ubuntu $(lsb_release -sc) main" > /etc/apt/sources.list.d/ros-latest.list'
+cat /etc/apt/sources.list.d/ros-latest.list
+sudo apt-key adv --keyserver hkp://keyserver.ubuntu.com:80 --recv-key C1CF6E31E6BADE8868B172B4F42ED6FBAB17C654
+#sudo apt install curl
+#curl -s https://raw.githubusercontent.com/ros/rosdistro/master/ros.asc | sudo apt-key add -
+sudo apt update 
+sudo apt-get install -y python-rosdep python-rosinstall-generator python-wstool python-rosinstall build-essential cmake
+
+sudo rosdep init
+rosdep update
+mkdir ~/ros_catkin_ws
+cd ~/ros_catkin_ws
+rosinstall_generator desktop --rosdistro noetic --deps --wet-only --tar > noetic-desktop-wet.rosinstall
+wstool init src noetic-desktop-wet.rosinstall
+#wstool update -j8 -t src  #ispolsovat', esli predidushi shag vidal oshibku
+rosdep install -y --from-paths src --ignore-src --rosdistro noetic -r --os=debian:buster
+sudo src/catkin/bin/catkin_make_isolated --install -DCMAKE_BUILD_TYPE=Release --install-space /opt/ros/noetic -j2 -DPYTHON_EXECUTABLE=/usr/bin/python3
+
+echo "source /opt/ros/noetic/setup.bash" >> ~/.bashrc
+source ~/.bashrc
+roscore
+rosrun turtlesim turtlesim_node
+rosrun turtlesim turtle_teleop_key
+
+#Для связи мастер-машины и RaspberryPi
+nano ~/.bashrc
+export ROS_MASTER_URI=http://192.168.236.8:11311	#Это IP-адрес мастер-машины, приписка ":11311"
+export ROS_HOSTNAME=192.168.236.177			#Это IP-адрес RaspberryPi (Обратите внимание вторая строка записывается так только на RaspberryPi. На местер машине во второй строке указывается IP-адрес мастер-машины
+
+source ~/.bashrc					#Для апдейта терминала
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХ
+#Рабочая среда и пакеты				
+#WS and Packages
+ls						#Вывод в терминал списка файлов и директорий
+mkdir catkin_ws				#Создать директорию 
+ls						#Вывод в терминал списка файлов и директорий
+cd catkin_ws					#Перейти в catkin_ws
+ls						#Вывод в терминал списка файлов и директорий
+mkdir src					#Создать директорию src
+ls						#Вывод в терминал списка файлов и директорий
+catkin_make					#in catkin_ws
+ls						#Вывод в терминал списка файлов и директорий
+cd src						#Перейти в src
+ls						#Вывод в терминал списка файлов и директорий
+cd ..						#На шаг вверх
+catkin_make					#already done
+source devel/setup.bash			#for autocheck WS files
+sudo nano ~/.bashrc				#add to bashrc strings to not write "source devel/setup.bash" every time
+source ~/catkin_ws/devel/setup.bash		#this to ~/.bashrc
+
+cd src						#Перейти в src
+
+catkin_create_pkg pfprs rospy roscpp std_msgs	#creates package "pfprs"
+ls						#Вывод в терминал списка файлов и директорий
+cd pfprs					#Перейти в catkin_ws
+ls						#Вывод в терминал списка файлов и директорий
+sudo nano CMakeLists.txt			#Открыть файл CMakeLists.txt
+sudo nano package.xml				#Открыть файл package.xml
+
+cd..
+cd..						#for going to "~/catkin_ws"
+catkin_make					#Компилляция проекта
+
+cd src/pfprs
+mkdir scripts
+ls
+cd scripts
+touch EX1.py					#making and typing EX1.py node
+
+roscore					#in 2nd terminal
+python3 EX1.py					#launch EX1.py
+
+touch EX2.py
+roscore	
+python3 EX2.py
+
+rosnode list
+rostopic list
+
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХХ
+#Публикаторы и подписчики
+#Publishers and Subscribers
+
+touch EX_transmitter.py			#making and typing EX_transmitter.py node
+ls						#name in gray
+chmod +x EX_transmitter.py			#making file executable
+ls						#name turnes to green
+rostopic list
+
+rostopic echo /our_transmitter
+chmod +x EX_reciever.py
+
+
+
+
+
+
+ssh pi@192.168.236.177
+rosrun rosserial_python serial_node.py /dev/ttyACM0 56000
+roslaunch usb_cam usb_cam-test.launch
+
+rosrun image_view image_view image:=/usb_cam/image_raw
+
+
+
+
+#make sure cv2 installed
+sudo apt install libopencv-dev python3-opencv
+python3 -c "import cv2; print(cv2.__version__)"
+
+#make sure cv-bridge installed
+sudo apt-get install ros-noetic-cv-bridge
+sudo apt-get install ros-noetic-vision-opencv
+cd catkin_ws/src
+
+
+catkin_create_pkg image_processing rospy std_msgs sensor_msgs cv_bridge 		#opencv2
+cd image_processing/src/
+touch example.py            #paste example code
+cd ~/catkin_ws/
+catkin_make
+cd catkin_ws/src/image_processing/src/
+python3 example.py					#we see new window
+##lets copy and update example.py
+python3 contour_finder.py
+rosrun teleop_twist_keyboard teleop_twist_keyboard.py
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
